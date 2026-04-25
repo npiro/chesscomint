@@ -2,29 +2,28 @@
 
 This project predicts pre-game outcomes from White's perspective:
 
-- `loss` (0)
-- `draw` (1)
-- `win` (2)
+- `loss`
+- `draw`
+- `win`
 
-The main challenges are:  
+Predictions are performed on March-2026 Titled Tuesday tournaments. Models were trained on February-2026 Titled Tuesday tournaments data and the participating player statistics data. Games data from prior to the actual game in March is also used, making sure data-leakage is avoided.
 
-1. class imbalance (`draw` is rare), so model selection prioritizes class-fair metrics.
-2. draw results has high variance, making it difficult to predict, especially for similar rated players in blitz games
+Chess rating difference is the most important feature to predict expected game result between two player. However, for any individual game, two wain challenges prevent accurate prediction of game results:  
+
+1. Class imbalance: `draw` is rare.  As a consequence, model training loss and selection prioritizes class-fair metrics.
+2. Results between similarly rated players has high variance: in particular, the predictability of draw vs non-draw (win/loss) is low.
 
 ## Environment Setup
 
-From the repository root:
+First of all, it is necessary to set up the environment for the project.  
+You may use either conda, mamba or micromamba.
+
+From the repository root (using conda):
 
 ```bash
 conda env create -f environment.yml
 conda activate chesscomint
 python -m ipykernel install --user --name chesscomint --display-name "Python (chesscomint)"
-```
-
-If you update dependencies later:
-
-```bash
-conda env update -f environment.yml --prune
 ```
 
 ## Dataset Extraction
@@ -45,7 +44,7 @@ This writes:
 
 ### Data preparation explanation
 
-`src/0_data_preparation.ipynb` is the canonical data-ingestion notebook and is intentionally shell-driven for reproducibility.
+`src/0_data_preparation.ipynb` is the data-ingestion notebook and is shell-driven for reproducibility.
 
 - It creates required folders (`data/raw`, `data/processed`) so downstream notebooks run without manual setup.
 - It runs `src/chesscomint/fetch_data.py`, which:
@@ -53,7 +52,6 @@ This writes:
   - writes one JSONL row per game to `titled_tuesday_games.jsonl`,
   - extracts unique players and fetches profile/stats payloads into `titled_tuesday_players.jsonl`.
 - It includes an optional `--players-only` refresh path to update player metadata without re-downloading games.
-- It ends with an output-file check (`ls -lh ...`) so you can verify extraction completed successfully before modeling.
 
 ## Data analysis and modelling
 
@@ -62,7 +60,7 @@ Experiments are organized as:
 1. `src/1_data_exploration.ipynb` — data quality and leakage-safe feature exploration
 2. `src/2_modelling_frequentist.ipynb` — frequentist multiclass baselines
 3. `src/2b_modelling_bayes.ipynb` — Bayesian probabilistic check
-4. `src/2c_modelling_two_stage.ipynb` — two-stage draw/non-draw then win/loss decomposition
+4. `src/2c_modelling_two_stage.ipynb` — two-stage draw/non-draw, then win/loss decomposition
 
 ## Final Recommendation
 
@@ -89,7 +87,7 @@ The most useful signals were consistently strength and uncertainty related:
 - `stats_win_rate_delta`: form/strength proxy beyond raw rating.
 - `stats_draw_rate_delta`: style tendency toward decisive vs drawish games.
 
-Practical explanation:
+Explanation:
 
 - Outcome probability is mostly driven by relative strength (`rating_delta`), while draw probability is more sensitive to **matchup closeness** (`abs_rating_delta`) and **uncertainty/style** (`RD` + draw-rate features).  
 - That is exactly why the two-stage approach helped: stage 1 focuses on detecting draw conditions, stage 2 resolves win vs loss once a non-draw is likely.
@@ -119,8 +117,8 @@ Secondary:
 ## Consolidated Final Results
 
 
-| notebook                        | model                        | test_logloss | test_macro_f1 | test_balanced_accuracy | test_draw_recall | note                                   |
-| ------------------------------- | ---------------------------- | ------------ | ------------- | ---------------------- | ---------------- | -------------------------------------- |
+| notebook                            | model                        | test_logloss | test_macro_f1 | test_balanced_accuracy | test_draw_recall | note                                   |
+| ----------------------------------- | ---------------------------- | ------------ | ------------- | ---------------------- | ---------------- | -------------------------------------- |
 | `src/2c_modelling_two_stage.ipynb`  | `two_stage_logistic_biased`  | 0.9934       | 0.5120        | 0.5296                 | 0.3667           | primary                                |
 | `src/2_modelling_frequentist.ipynb` | `xgboost_early_stop`         | 1.0297       | 0.4270        | 0.4467                 | 0.3548           | backup                                 |
 | `src/2_modelling_frequentist.ipynb` | `random_forest_draw_aware`   | 0.8902       | 0.4429        | 0.4534                 | 0.0323           | draw-aware RF                          |
