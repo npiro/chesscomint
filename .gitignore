@@ -1,4 +1,4 @@
-./micormamba
-./ipynb_checkpoints
+.micromamba
+.ipynb_checkpoints
 ./data
 ./exercise_statement
