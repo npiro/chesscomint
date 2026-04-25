@@ -1,0 +1,19 @@
+name: chesscomint
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - matplotlib
+  - jupyterlab
+  - ipykernel
+  - scikit-learn
+  - seaborn
+  - requests
+  - tqdm
+  - xgboost
+  - pymc
+  - arviz
+  - joblib
