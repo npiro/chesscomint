@@ -114,6 +114,71 @@ Secondary:
 
 - multiclass log loss
 
+## Training Objectives by Model
+
+The table below summarizes the optimization objective (loss) used during training for each reported model.
+
+| model | notebook | training objective / loss | class-imbalance handling |
+| --- | --- | --- | --- |
+| `two_stage_logistic_biased` | `src/2c_modelling_two_stage.ipynb` | Two binary logistic objectives (cross-entropy): Stage 1 `draw` vs `non-draw`, Stage 2 `win` vs `loss` on non-draw subset. Final draw probability adjusted with validation-tuned logit bias. | `class_weight="balanced"` in both logistic stages + validation bias tuning for draw/non-draw threshold behavior |
+| `softmax_logistic_balanced` | `src/2c_modelling_two_stage.ipynb` | Multinomial logistic (softmax) negative log-likelihood (cross-entropy) | `class_weight="balanced"` |
+| `softmax_rf_balanced` | `src/2c_modelling_two_stage.ipynb` | Random forest split criterion (`gini`) with majority vote / averaged class probabilities | `class_weight="balanced_subsample"` |
+| `xgboost_early_stop` | `src/2_modelling_frequentist.ipynb` | XGBoost multiclass objective (`multi:softprob`, i.e., multiclass log-loss) with early stopping on validation set | per-row `sample_weight` from balanced class weights |
+| `random_forest_draw_aware` | `src/2_modelling_frequentist.ipynb` | Random forest split criterion (`gini`) + post-hoc draw-threshold tuning on validation set | custom class weights with upweighted draw class (`{0:1, 1:w_draw, 2:1}`) + threshold tuning |
+| `bayesian_multinomial_logit` | `src/2b_modelling_bayes.ipynb` | Bayesian multinomial logistic regression with categorical likelihood; trained by posterior inference (NUTS), equivalent likelihood term is multinomial log-loss | imbalance handled through priors/model structure (no explicit `class_weight`) |
+
+### Metric definitions
+
+Notation: $N$ examples, $K=3$ classes (loss, draw, win). Let $y_i \in \{1,\ldots,K\}$ be the true label and $\hat{y}_i$ the predicted class for example $i$. For probabilistic models, let $\hat{p}_{i,c} = P(\hat{y}_i = c \mid x_i)$ with $\sum_c \hat{p}_{i,c} = 1$.
+
+**Confusion counts per class $c$.** Let $TP_c$ be the number of examples with true label $c$ predicted as $c$; $FN_c$ the number with true $c$ predicted as something else; $FP_c$ the number predicted as $c$ but true label not $c$.
+
+**Recall (per-class),** also called sensitivity or hit rate for class $c$:
+
+$$
+R_c = \frac{TP_c}{TP_c + FN_c}
+$$
+
+**Precision (per-class):**
+
+$$
+P_c = \frac{TP_c}{TP_c + FP_c}
+$$
+
+**F1 score (per-class):** harmonic mean of precision and recall (with $P_c + R_c = 0$ treated as $F1_c = 0$):
+
+$$
+F1_c = \frac{2 P_c R_c}{P_c + R_c}
+$$
+
+**Balanced accuracy** (multiclass, as in scikit-learn `balanced_accuracy_score`): the unweighted mean of per-class recalls:
+
+$$
+\text{balanced accuracy} = \frac{1}{K} \sum_{c=1}^{K} R_c
+$$
+
+**Macro F1:** unweighted mean of per-class F1 scores:
+
+$$
+\text{macro-F1} = \frac{1}{K} \sum_{c=1}^{K} F1_c
+$$
+
+**Draw recall** (`test_draw_recall`): recall $R_c$ for the class labeled draw (same recall formula with $c = \text{draw}$).
+
+**Multiclass log loss** (cross-entropy; natural log), using class indicator $\mathbb{1}[y_i = c]$:
+
+$$
+\text{log loss} = -\frac{1}{N} \sum_{i=1}^{N} \sum_{c=1}^{K} \mathbb{1}[y_i = c] \, \log \hat{p}_{i,c}
+$$
+
+(Probabilities are clipped to a small $\varepsilon > 0$ where implementations require it to avoid $\log 0$.)
+
+**Overall accuracy** (for context; not the primary selection metric here):
+
+$$
+\text{accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\hat{y}_i = y_i]
+$$
+
 ## Consolidated Final Results
 
 
