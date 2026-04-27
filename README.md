@@ -194,6 +194,11 @@ $$
 
 CSV export: `data/processed/final_results_summary.csv`.
 
+Model artifacts and stored outputs:
+
+- final consolidated results are stored in `data/processed/final_results_summary.csv`
+- the selected best model artifact is stored in `data/processed/march_best_model.joblib`
+
 ## Reproducibility
 
 Run notebooks in order:
