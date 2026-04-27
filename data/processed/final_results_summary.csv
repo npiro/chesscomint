@@ -1,0 +1,7 @@
+notebook,model,test_logloss,test_macro_f1,test_balanced_accuracy,test_draw_recall,note
+src/2c_modelling_two_stage.ipynb,two_stage_logistic_biased,0.993418,0.512026,0.529587,0.366667,primary
+src/2_modelling_frequentist.ipynb,xgboost_early_stop,1.029666,0.427023,0.446708,0.354839,backup
+src/2_modelling_frequentist.ipynb,random_forest_draw_aware,0.890174,0.442910,0.453380,0.032258,draw-aware RF
+src/2b_modelling_bayes.ipynb,bayesian_multinomial_logit,0.835871,0.444024,0.468152,0.000000,bayesian softmax
+src/2c_modelling_two_stage.ipynb,softmax_rf_balanced,0.875418,0.440682,0.460690,0.000000,single-stage baseline
+src/2c_modelling_two_stage.ipynb,softmax_logistic_balanced,1.108419,0.379714,0.455247,0.666667,high-draw-recall baseline
