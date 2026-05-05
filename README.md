@@ -34,7 +34,7 @@ Equivalent terminal command from repo root:
 
 ```bash
 PYTHONPATH=src python3 -m chesscomint.fetch_data \
-  --user-agent "chesscomint-interview-exercise (contact: you@example.com)"
+  --user-agent "chesscomint-interview-exercise"
 ```
 
 This writes:
